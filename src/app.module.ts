@@ -9,6 +9,12 @@ import databaseConfig from './config/database.config';
 import { DataSource } from 'typeorm';
 import { ProductsModule } from './modules/products/products.module';
 import { ShopsModule } from './modules/shops/shops.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { ProductVariantsModule } from './modules/product_variants/product_variants.module';
+import { OrdersItemsModule } from './modules/orders_items/orders_items.module';
+import { OrdersModule } from './modules/orders/orders.module';
+import { ChannelMappingsModule } from './modules/channel-mappings/channel-mappings.module';
+import { InventoryModule } from './modules/inventory/inventory.module';
 
 @Module({
   imports: [
@@ -29,6 +35,12 @@ import { ShopsModule } from './modules/shops/shops.module';
     UserModule,
     ProductsModule,
     ShopsModule,
+    AuthModule,
+    ProductVariantsModule,
+    InventoryModule,
+    ChannelMappingsModule,
+    OrdersModule,
+    OrdersItemsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

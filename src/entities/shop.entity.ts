@@ -1,6 +1,15 @@
-import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
+import {
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
 import { BaseEntity } from './base/base.entity';
 import { User } from './user.entity';
+import { Order } from './order.entity';
+import { ChannelMapping } from './channel_mapping.entity';
 
 export enum ShopStatus {
   ACTIVE = 'active',
@@ -65,4 +74,15 @@ export class Shop extends BaseEntity {
   @ManyToOne(() => User, (user) => user.shops, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
   user: User;
+
+  // One-to-Many relationship with Orders
+  @OneToMany(() => Order, (order) => order.shop, {
+    cascade: true,
+  })
+  orders: Order[];
+  // One-to-Many relationship with ChannelMappings
+  @OneToMany(() => ChannelMapping, (mapping) => mapping.shop, {
+    cascade: true,
+  })
+  channelMappings: ChannelMapping[];
 }
