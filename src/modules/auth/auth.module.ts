@@ -8,10 +8,13 @@ import { UserModule } from '../user/user.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { Session } from 'src/entities/session.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { LocalStrategy } from './strategies/local.strategy';
+import { UserService } from '../user/user.service';
+import { User } from 'src/entities/user.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Session]),
+    TypeOrmModule.forFeature([Session, User]),
     UserModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
@@ -28,7 +31,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, LocalStrategy, UserService],
   exports: [AuthService, JwtStrategy, PassportModule],
 })
 export class AuthModule {}

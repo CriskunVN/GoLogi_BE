@@ -20,11 +20,7 @@ export class AuthService {
     private readonly sessionRepository: Repository<Session>,
   ) {}
 
-  async login(
-    email: string,
-    password: string,
-  ): Promise<{ access_token: string; refresh_token: string }> {
-    // 1. Kiểm tra user trong DB và xác thực mật khẩu
+  async validateUser(email: string, password: string): Promise<any> {
     const user = await this.userService.findByEmail(email);
     if (!user) {
       throw new UnauthorizedException('Sai mật khẩu hoặc email');
@@ -36,6 +32,15 @@ export class AuthService {
     if (!isPasswordValid) {
       throw new UnauthorizedException('Sai mật khẩu hoặc email');
     }
+    return user;
+  }
+
+  async login(
+    email: string,
+    password: string,
+  ): Promise<{ access_token: string; refresh_token: string }> {
+    // 1. Kiểm tra user trong DB và xác thực mật khẩu
+    const user = await this.validateUser(email, password);
 
     // 2. Tạo JWT tokens
     const { accessToken, refreshToken } = await this.generateTokens(
