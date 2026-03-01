@@ -4,7 +4,6 @@ import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './modules/user/user.module';
-import configuration from './config/database.config';
 import databaseConfig from './config/database.config';
 import { DataSource } from 'typeorm';
 import { ProductsModule } from './modules/products/products.module';

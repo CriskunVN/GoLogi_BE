@@ -1,26 +1,101 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProductVariantDto } from './dto/create-product_variant.dto';
 import { UpdateProductVariantDto } from './dto/update-product_variant.dto';
+import { ProductVariantResponseDto } from './dto/product-variant-response.dto';
+import { ProductVariant } from 'src/entities/product_variants.entity';
+import { Repository } from 'typeorm';
+import { plainToInstance } from 'class-transformer';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class ProductVariantsService {
+  constructor(
+    @InjectRepository(ProductVariant)
+    private productVariantRepository: Repository<ProductVariant>,
+  ) {}
   create(createProductVariantDto: CreateProductVariantDto) {
-    return 'This action adds a new productVariant';
+    const check = this.productVariantRepository.findOne({
+      where: {
+        sku_code: createProductVariantDto.sku_code,
+        product: { id: createProductVariantDto.productId },
+      },
+    });
+
+    if (check != null) {
+      throw new NotFoundException(
+        `Product variant with SKU code ${createProductVariantDto.sku_code} already exists for this product`,
+      );
+    }
+
+    const variant = this.productVariantRepository.create(
+      createProductVariantDto,
+    );
+    return this.productVariantRepository.save(variant);
   }
 
-  findAll() {
-    return `This action returns all productVariants`;
+  async findAll(): Promise<ProductVariantResponseDto[]> {
+    const variants = await this.productVariantRepository.find({
+      relations: ['product', 'inventory'],
+    });
+    // Chuyển đổi danh sách product variants sang ProductVariantResponseDto
+    return variants.map((variant) =>
+      plainToInstance(ProductVariantResponseDto, variant, {
+        excludeExtraneousValues: true,
+      }),
+    );
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} productVariant`;
+  async findOne(id: string): Promise<ProductVariantResponseDto> {
+    const variant = await this.productVariantRepository.findOne({
+      where: { id },
+      relations: ['product', 'inventory'],
+    });
+
+    if (!variant) {
+      throw new NotFoundException(`Product variant with ID ${id} not found`);
+    }
+
+    // Chuyển đổi product variant sang ProductVariantResponseDto
+    return plainToInstance(ProductVariantResponseDto, variant, {
+      excludeExtraneousValues: true,
+    });
   }
 
-  update(id: number, updateProductVariantDto: UpdateProductVariantDto) {
-    return `This action updates a #${id} productVariant`;
+  async update(
+    id: string,
+    updateProductVariantDto: UpdateProductVariantDto,
+  ): Promise<ProductVariantResponseDto> {
+    const variant = await this.productVariantRepository.findOne({
+      where: { id },
+      relations: ['product', 'inventory'],
+    });
+
+    if (!variant) {
+      throw new NotFoundException(`Product variant with ID ${id} not found`);
+    }
+
+    // Cập nhật các trường của variant bằng dữ liệu từ DTO
+    this.productVariantRepository.merge(variant, updateProductVariantDto);
+
+    // Lưu lại variant đã được cập nhật vào database
+    const updatedVariant = await this.productVariantRepository.save(variant);
+
+    // Trả về variant đã được cập nhật dưới dạng DTO
+    return plainToInstance(ProductVariantResponseDto, updatedVariant, {
+      excludeExtraneousValues: true,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} productVariant`;
+  async remove(id: string) {
+    const variant = await this.productVariantRepository.findOne({
+      where: { id },
+      relations: ['product', 'inventory'],
+    });
+
+    if (!variant) {
+      throw new Error(`Product variant with ID ${id} not found`);
+    }
+
+    return this.productVariantRepository.remove(variant);
   }
 }

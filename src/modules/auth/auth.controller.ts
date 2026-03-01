@@ -5,7 +5,6 @@ import {
   HttpCode,
   UseGuards,
   Req,
-  Request,
   Get,
   UseInterceptors,
   ClassSerializerInterceptor,
@@ -23,7 +22,7 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   @HttpCode(200)
-  async login(@Request() req, @Body() authDto: AuthLoginDto) {
+  async login(@Req() req, @Body() authDto: AuthLoginDto) {
     const { access_token, refresh_token } = await this.authService.login(
       authDto.email,
       authDto.password,
@@ -36,11 +35,13 @@ export class AuthController {
     return this.authService.register(authDto);
   }
 
+  @UseGuards(JWTAuthGuard)
   @Post('refresh-token')
   refreshToken(@Body('refreshToken') refreshToken: string) {
     return this.authService.refreshAccessToken(refreshToken);
   }
 
+  @UseGuards(JWTAuthGuard)
   @Post('logout')
   logout(@Body('refreshToken') refreshToken: string) {
     return this.authService.logout(refreshToken);
