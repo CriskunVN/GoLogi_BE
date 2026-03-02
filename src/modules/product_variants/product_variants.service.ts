@@ -3,6 +3,7 @@ import { CreateProductVariantDto } from './dto/create-product_variant.dto';
 import { UpdateProductVariantDto } from './dto/update-product_variant.dto';
 import { ProductVariantResponseDto } from './dto/product-variant-response.dto';
 import { ProductVariant } from 'src/entities/product_variants.entity';
+import { Inventory } from 'src/entities/inventory.entity';
 import { Repository } from 'typeorm';
 import { plainToInstance } from 'class-transformer';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -12,9 +13,11 @@ export class ProductVariantsService {
   constructor(
     @InjectRepository(ProductVariant)
     private productVariantRepository: Repository<ProductVariant>,
+    @InjectRepository(Inventory)
+    private inventoryRepository: Repository<Inventory>,
   ) {}
-  create(createProductVariantDto: CreateProductVariantDto) {
-    const check = this.productVariantRepository.findOne({
+  async create(createProductVariantDto: CreateProductVariantDto) {
+    const check = await this.productVariantRepository.findOne({
       where: {
         sku_code: createProductVariantDto.sku_code,
         product: { id: createProductVariantDto.productId },
@@ -27,10 +30,23 @@ export class ProductVariantsService {
       );
     }
 
+    // Tạo variant
     const variant = this.productVariantRepository.create(
       createProductVariantDto,
     );
-    return this.productVariantRepository.save(variant);
+    const savedVariant = await this.productVariantRepository.save(variant);
+
+    // Tự động tạo inventory với stock ban đầu = 0
+    const inventory = this.inventoryRepository.create({
+      variantId: savedVariant.id,
+      stock_on_hand: 0,
+      stock_locked: 0,
+      stock_available: 0,
+      last_updated_at: new Date(),
+    });
+    await this.inventoryRepository.save(inventory);
+
+    return savedVariant;
   }
 
   async findAll(): Promise<ProductVariantResponseDto[]> {

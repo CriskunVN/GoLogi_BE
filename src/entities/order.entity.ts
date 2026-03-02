@@ -21,33 +21,31 @@ export enum OrderStatus {
 
 @Entity('orders')
 @Index(['shopId'])
-@Index(['order_status'])
+@Index(['orderStatus'])
 export class Order extends BaseEntity {
   @Column({ type: 'uuid' })
   shopId: string;
 
   @Index({ unique: true })
-  @Column({ unique: true })
-  platform_order_id: string;
+  @Column({ unique: true, name: 'platform_order_id' })
+  platformOrderId: string;
 
   @Column({
     type: 'enum',
     enum: OrderStatus,
     default: OrderStatus.PENDING,
+    name: 'order_status',
   })
-  order_status: OrderStatus;
+  orderStatus: OrderStatus;
 
-  @Column('decimal', { precision: 15, scale: 2 })
-  total_amount: number;
+  @Column('decimal', { precision: 15, scale: 2, name: 'total_amount' })
+  totalAmount: number;
 
-  @Column('jsonb', { nullable: true })
-  customer_info: Record<string, any>;
+  @Column('jsonb', { nullable: true, name: 'customer_info' })
+  customerInfo: Record<string, any>;
 
-  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
-  created_at: Date;
-
-  @Column({ type: 'timestamptz', nullable: true })
-  platform_created_at: Date;
+  @Column({ type: 'timestamptz', nullable: true, name: 'platform_created_at' })
+  platformCreatedAt: Date;
 
   // Many-to-One relationship with Shop
   @ManyToOne(() => Shop, (shop) => shop.orders, {

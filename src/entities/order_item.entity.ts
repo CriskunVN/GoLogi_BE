@@ -16,11 +16,15 @@ export class OrderItem extends BaseEntity {
   @Column()
   quantity: number;
 
-  @Column('decimal', { precision: 10, scale: 2 })
-  unit_price_at_purchase: number;
+  @Column('decimal', {
+    precision: 10,
+    scale: 2,
+    name: 'unit_price_at_purchase',
+  })
+  unitPriceAtPurchase: number;
 
-  @Column()
-  platform_sku_id_ref: string;
+  @Column({ name: 'platform_sku_id_ref' })
+  platformSkuIdRef: string;
 
   // Many-to-One relationship with Order
   @ManyToOne(() => Order, (order) => order.items, {
