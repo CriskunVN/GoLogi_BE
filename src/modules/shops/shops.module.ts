@@ -6,11 +6,13 @@ import { Shop } from '../../entities/shop.entity';
 import { User } from '../../entities/user.entity';
 import { Order } from '../../entities/order.entity';
 import { ChannelMapping } from '../../entities/channel_mapping.entity';
+import { TikTokService } from './tiktok/tiktok.service';
+import { ShopeeService } from './shopee/shopee.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Shop, User, Order, ChannelMapping])],
   controllers: [ShopsController],
-  providers: [ShopsService],
+  providers: [ShopsService, TikTokService, ShopeeService],
   exports: [ShopsService],
 })
 export class ShopsModule {}
