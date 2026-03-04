@@ -33,7 +33,7 @@ _Mục tiêu: Quản lý độc lập được danh mục hàng hóa (như các 
 
 _Mục tiêu: Thiết lập bảng ánh xạ, chuẩn bị sẵn sàng ghép nối mã SKU nội bộ với mã trên sàn._
 
-- [ ] Code API thêm thông tin cấu hình gian hàng vào bảng `CONNECTED_SHOPS` (chuẩn bị sẵn các trường lưu access/refresh token).
+- [x] Code API thêm thông tin cấu hình gian hàng vào bảng `CONNECTED_SHOPS` (chuẩn bị sẵn các trường lưu access/refresh token).
 - [ ] Code API CRUD cho bảng `CHANNEL_MAPPINGS` (Thêm, sửa, xóa mapping).
 - [ ] Viết API cho phép map thủ công: `Variant_ID_Nội_Bộ` <---> `Platform_SKU_ID`.
 - [ ] Đánh `@Index` kết hợp cho 2 cột `shop_id` và `platform_sku_id` để tối ưu tốc độ truy vấn sau này.
