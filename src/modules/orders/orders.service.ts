@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InventoryService } from '../inventory/inventory.service';
 import { DataSource } from 'typeorm';
 import { Order, OrderStatus } from 'src/entities/order.entity';
@@ -12,6 +13,7 @@ export class OrdersService {
   constructor(
     private dataSource: DataSource,
     private inventoryService: InventoryService,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async createOrderFromWebhook(orderData: OrderRequestDto) {
@@ -62,6 +64,14 @@ export class OrdersService {
       const fullOrder = await queryRunner.manager.findOne(Order, {
         where: { id: savedOrder.id },
         relations: ['items'],
+      });
+
+      // 5. BẮN EVENT SAU KHI COMMIT THÀNH CÔNG
+      this.eventEmitter.emit('inventory.stock_changed', {
+        orderId: savedOrder.id,
+        shopId: savedOrder.shopId,
+        platformOrderId: savedOrder.platformOrderId,
+        items: orderData.items,
       });
 
       return plainToInstance(OrderResponseDto, fullOrder, {

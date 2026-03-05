@@ -123,6 +123,60 @@ export class ShopeeService {
     }
   }
 
+  /**
+   * Refresh access token cho Shopee.
+   *
+   * Endpoint refresh thực tế có thể khác tùy API version.
+   * Có thể override bằng biến môi trường SHOPEE_REFRESH_TOKEN_URL.
+   */
+  async refreshAccessToken(refreshToken: string, shopId: string) {
+    const partnerId = this.configService.get<string>('SHOPEE_PARTNER_ID');
+    if (!partnerId) {
+      throw new BadRequestException('Thiếu cấu hình SHOPEE_PARTNER_ID');
+    }
+
+    if (!refreshToken) {
+      throw new BadRequestException('Thiếu refresh token của Shopee shop');
+    }
+
+    const timestamp = Math.floor(Date.now() / 1000);
+    const refreshPath = '/api/v2/auth/access_token/get';
+    const sign = this.generateShopeeSign(refreshPath, timestamp);
+
+    const refreshUrl =
+      this.configService.get<string>('SHOPEE_REFRESH_TOKEN_URL') ||
+      `https://partner.shopeemobile.com${refreshPath}`;
+
+    const response = await axios.post(
+      `${refreshUrl}?partner_id=${partnerId}&timestamp=${timestamp}&sign=${sign}`,
+      {
+        // Dùng đúng tên field theo API Shopee hiện đang lưu trong hệ thống.
+        refresh_token: refreshToken,
+        shop_id: Number(shopId),
+        partner_id: Number(partnerId),
+      },
+    );
+
+    const data = response.data;
+    if (!data?.access_token) {
+      throw new BadRequestException(
+        'Shopee refresh token response không hợp lệ',
+      );
+    }
+
+    // Chuẩn hóa kết quả để scheduler update DB thống nhất với TikTok.
+    return {
+      access_token: data.access_token,
+      refresh_token: data.refresh_token || refreshToken,
+      access_token_expires_at: new Date(
+        Date.now() + (data.expire_in || 14400) * 1000,
+      ),
+      refresh_token_expires_at: new Date(
+        Date.now() + (data.refresh_token_expire_in || 86400 * 30) * 1000,
+      ),
+    };
+  }
+
   // Hàm tạo signature theo yêu cầu của Shopee
   private generateShopeeSign(path: string, timestamp: number): string {
     const partnerId = this.configService.get<string>('SHOPEE_PARTNER_ID');

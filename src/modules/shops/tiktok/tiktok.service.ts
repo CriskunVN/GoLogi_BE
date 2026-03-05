@@ -119,6 +119,57 @@ export class TikTokService {
     }
   }
 
+  /**
+   * Refresh access token cho TikTok Shop.
+   *
+   * Lưu ý: Endpoint refresh thực tế có thể khác tùy phiên bản API TikTok.
+   * Có thể override bằng biến môi trường TIKTOK_REFRESH_TOKEN_URL.
+   */
+  async refreshAccessToken(refreshToken: string) {
+    const appKey = this.configService.get<string>('TIKTOK_APP_KEY');
+    const appSecret = this.configService.get<string>('TIKTOK_APP_SECRET');
+    const refreshUrl =
+      this.configService.get<string>('TIKTOK_REFRESH_TOKEN_URL') ||
+      'https://auth.tiktok-shops.com/api/v1/auth/token/refresh';
+
+    if (!appKey || !appSecret) {
+      throw new BadRequestException(
+        'Thiếu cấu hình TIKTOK_APP_KEY hoặc TIKTOK_APP_SECRET',
+      );
+    }
+
+    if (!refreshToken) {
+      throw new BadRequestException('Thiếu refresh token của TikTok shop');
+    }
+
+    const response = await axios.post(refreshUrl, {
+      app_key: appKey,
+      app_secret: appSecret,
+      grant_type: 'refresh_token',
+      refresh_token: refreshToken,
+    });
+
+    const data = response.data?.data;
+
+    if (!data?.access_token) {
+      throw new BadRequestException(
+        'TikTok refresh token response không hợp lệ',
+      );
+    }
+
+    // Chuẩn hóa dữ liệu trả về để Scheduler có thể update DB theo cùng một format.
+    return {
+      access_token: data.access_token,
+      refresh_token: data.refresh_token || refreshToken,
+      access_token_expires_at: new Date(
+        Date.now() + (data.access_token_expire_in || 3600) * 1000,
+      ),
+      refresh_token_expires_at: new Date(
+        Date.now() + (data.refresh_token_expire_in || 86400 * 30) * 1000,
+      ),
+    };
+  }
+
   // Hàm này sẽ được gọi định kỳ (ví dụ mỗi 5 phút) để dọn dẹp các state đã hết hạn
   private pruneExpiredStates() {
     const now = Date.now();

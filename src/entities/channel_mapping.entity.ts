@@ -7,6 +7,7 @@ import { Shop } from './shop.entity';
 @Unique(['variantId', 'shopId'])
 @Index(['shopId'])
 @Index(['variantId'])
+@Index(['platform_sku_id'])
 export class ChannelMapping extends BaseEntity {
   @Column({ type: 'uuid' })
   variantId: string;
